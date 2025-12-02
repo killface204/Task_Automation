@@ -2,9 +2,10 @@ name: Build and push Docker image
 
 on:
   push:
-    branches: [ main ]
-  tags:
-    - 'v*.*.*'        # support semver tags like v1.2.3
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'   # triggers when you push a tag like v1.2.3
   workflow_dispatch:
 
 permissions:
@@ -37,10 +38,10 @@ jobs:
           # always create sha tag
           SHA_TAG=${{ github.sha }}
 
-          # branch tag (replace / with -)
+          # branch or tag name (replace / with -)
           BRANCH_TAG=$(echo "${{ github.ref_name }}" | tr '/' '-')
 
-          # semver tag if we are building from a release tag
+          # semver tag if we are building from a release tag like v1.2.3
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             VERSION_TAG=${{ github.ref_name }}
           else
@@ -65,7 +66,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 4) Tag and push all versions
+      # 4) Tag and push versioned images
       - name: Tag & push versioned images
         run: |
           IMAGE=${{ steps.meta.outputs.image_name }}
@@ -94,7 +95,6 @@ jobs:
           echo "Pushing branch"
           docker push $IMAGE:${{ steps.meta.outputs.branch_tag }}
 
-          # semver tag only on release tags
           if [ -n "${{ steps.meta.outputs.version_tag }}" ]; then
             echo "Pushing version"
             docker push $IMAGE:${{ steps.meta.outputs.version_tag }}
