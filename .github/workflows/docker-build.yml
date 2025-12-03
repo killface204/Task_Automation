@@ -33,15 +33,11 @@ jobs:
       - name: Set image metadata
         id: meta
         run: |
-          IMAGE=ghcr.io/${{ github.repository }}
+          IMAGE="ghcr.io/${{ github.repository_owner }}/$(echo ${{ github.event.repository.name }} | tr '[:upper:]' '[:lower:]')"
 
-          # always create sha tag
           SHA_TAG=${{ github.sha }}
+          BRANCH_TAG=$(echo "${{ github.ref_name }}" | tr '/' '-' | tr '[:upper:]' '[:lower:]')
 
-          # branch or tag name (replace / with -)
-          BRANCH_TAG=$(echo "${{ github.ref_name }}" | tr '/' '-')
-
-          # semver tag if we are building from a release tag like v1.2.3
           if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
             VERSION_TAG=${{ github.ref_name }}
           else
@@ -52,6 +48,7 @@ jobs:
           echo "sha_tag=$SHA_TAG" >> $GITHUB_OUTPUT
           echo "branch_tag=$BRANCH_TAG" >> $GITHUB_OUTPUT
           echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
+
 
       # 2) Build Docker image (once)
       - name: Build Docker image
